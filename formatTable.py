@@ -10,21 +10,52 @@ def main():
     args = get_args()
 
     if args.ft == "table":
-        getTable(args)
+        formatTable(args)
+
+    if args.ft == "fasta":
+        formatFasta(args)
+      
+
+
+def formatFasta(args):
+
+    fasta = readFasta(args.f)
+    for line in open(args.b,"r"):
+        if line.startswith("#"):
+            if args.add :
+                print "%s\tSeq" % (line.strip()) 
+            continue
+        s         = line.strip().split()
+        lociList  = joinPartList(s,args.bc).split("#")
+        (fid,seq) = getSequence("".join(fasta[lociList[0]]),lociList)   
+        if args.add :
+            print "%s\t%s" % (line.strip(),seq)
+        else: 
+            print ">%s\n%s" % (fid,seq)
 
 
 
 
-def getTable(args):
+
+def formatTable(args):
+
+    if not len(args.bc) == len(args.fc):
+        print "Error, number of bait columns not eq the number of fish columns"
+        exit(1)
 
     baitlist=[]
     for line in open(args.b,"r"):
+        if line.startswith("#"):
+            continue
         s=line.strip().split()
         tag=joinPartList(s,args.bc)
         baitlist.append(tag)
 
     #print baitlist
     for line in open(args.f,"r"):
+        if line.startswith("#"):
+            print line.strip()
+            continue
         s=line.strip().split()
         tag=joinPartList(s,args.fc)
         #print tag
@@ -32,14 +63,8 @@ def getTable(args):
             if tag not in baitlist:
                 print line.strip()
         else:
-        	if tag in baitlist:
-        		print line.strip()
-
-
-
-
-
-
+            if tag in baitlist:
+                print line.strip()
 
 
 def get_args():
@@ -52,17 +77,22 @@ RunCmd :
     Writer  : Minghui Meng <hyacinlee@163.com> 
 
     1) Extract or Except saome line by mutiple-col number 
-        %s -b bait.table -f fish.table
-        %s -b bait.table -f fish.table --bc 1,2  --fc 2,3 --except  
+         formatTable.py -b bait.table -f fish.table
+         formatTable.py -b bait.table -f fish.table --bc 1 2  --fc 2 3 --except  
+    2) Add fasta seq to the end of table , 1 2 3 4 5 means chr|start|end|stand|name; 4 5 can be none
+         formatTable.py -b bait.table -f fasta.file --bc 1 2 3 4 -add -ft fasta 
+    3) Extract sub fasta ,
+         formatTable.py -b bait.table -f fasta.file --bc 1 2 3 4 5 -ft fasta
 
-'''%(sys.argv[0],sys.argv[0])
+'''
     )
     parser.add_argument('-b',metavar='',help='table split bait file ')
     parser.add_argument('-f',metavar='',help='fish file')
-    parser.add_argument('-ft',metavar='',help='type of fish file',choices=('table', 'fasta'),default="table")
+    parser.add_argument('-ft',metavar='',help='type of fish file  table|fasta ',choices=('table', 'fasta'),default="table")
     parser.add_argument('--bc',metavar='',help='set bait file columns,suppose like 1,2,3 ',nargs="+",default=[1])
     parser.add_argument('--fc',metavar='',help='set fish file columns,suppose like 2,3,4 ',nargs="+",default=[1])
     parser.add_argument('--exc',help='except bait lines',action='store_true',default=False)
+    parser.add_argument('--add',help='add fasta to the end of table ',action='store_true',default=False)
     args = parser.parse_args()
     
     if not args.b or not args.f:
@@ -75,6 +105,26 @@ RunCmd :
 
 
 ####    comman function 
+
+
+def getSequence(seq,loci):
+    mySeq = seq[int(loci[1])-1:int(loci[2])]
+    myID  = "%s:%s-%s" % (loci[0],loci[1],loci[2])
+    if len(loci) >= 4:
+        if   loci[3] == "+":
+            pass
+        elif loci[3] == "-":
+            mySeq = complementReverse(mySeq)
+            myID  = "%s:%s-%s:%s" % (loci[0],loci[1],loci[2],loci[3])
+        else:
+            print "Error, %s is not +/- ,please choose the right columns number"
+            exit(1)
+    if len(loci) >= 5:
+        myID = loci[4]
+
+    return (myID,mySeq)
+
+
 
 def joinPartList(mylist,colList):
 
@@ -98,7 +148,7 @@ def readFasta(fasta_file):
     '''
         reading fasta file and return a dict of name and sequence .
     '''
-    print "# Reading fasta dict from %s" %(fasta_file)
+    #print "# Reading fasta dict from %s" %(fasta_file)
     fasta    = {}
     fasta_id = ''
     for line in open(fasta_file):
@@ -107,7 +157,7 @@ def readFasta(fasta_file):
             fasta[fasta_id] = []
         else:
             fasta[fasta_id].append(line.strip())
-    print "# Finish reading %s seqs in %s" %(len(fasta.keys()),fasta_file)
+    #print "# Finish reading %s seqs in %s" %(len(fasta.keys()),fasta_file)
     return fasta 
 
 
@@ -120,6 +170,7 @@ def complementReverse(sequence):
     sequence = sequence.replace('G', 'c')
     sequence = sequence.upper()
     return sequence[::-1]
+
 
 
 def accumulateDict(myDict,val,keyA,keyB="no"):
@@ -144,7 +195,5 @@ def accumulateDict(myDict,val,keyA,keyB="no"):
 
 
 
-
 if __name__ == '__main__':
     main()
-
