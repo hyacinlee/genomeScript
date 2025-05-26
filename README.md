@@ -1,33 +1,30 @@
 # genomeScript
+基因组分析工具/脚本 合集
 
-## gapFinder.py 
-find gap in genome fasta 
+## Dir : visualization:
+可视化工具及脚本
 
-## telBlock.py 
-creat Telomere in chromsome start and end
+## Dir： work.4:
+简单的分析流程合集
 
-## splitScaf.py 
-split scaf and chromsome Fasta to contig by remove N
+### AutoRun
+多任务并行、集群投递等
 
-## mergeSV.sh
-bash commond to merge sv result of  smartie and sniff
+### formatTable.py
+比较及处理各种表格、gff、fasta文件
 
-## formatTable.py 
-usage: formatTable.py [-h] [-b] [-f] [-ft] [--bc  [...]] [--fc  [...]] [--exc]
+### matrix2tab.py
+将矩阵转换成ggplot识别的表格
 
-RunCmd :
-    Funciton: use a table split file to handle fasta && table files 
-    Writer  : Minghui Meng <hyacinlee@163.com> 
+### mergeValue.py
+合并多个表格到一个矩阵 
 
-    1) Extract or Except saome line by mutiple-col number 
-        ./formatTable.py -b bait.table -f fish.table
-        ./formatTable.py -b bait.table -f fish.table --bc 1,2  --fc 2,3 --except  
+### rename_gff_id_auto.py/rename_gff_id_file.py
+对GFF文件重命名
 
-optional arguments:
-  -h, --help    show this help message and exit
-  -b            table split bait file (default: None)
-  -f            fish file (default: None)
-  -ft           type of fish file (default: table)
-  --bc  [ ...]  set bait file columns,suppose like 1,2,3 (default: [1])
-  --fc  [ ...]  set fish file columns,suppose like 2,3,4 (default: [1])
-  --exc         except bait lines (default: False)
+### gap_finder.py/split_fasta_by_bins.pl/split_scaf_to_contig.py
+寻找fasta中的gap、按bin或者gaps切分基因组
+
+### change_fasta_strand.py
+转换染色体方向、名称
+
